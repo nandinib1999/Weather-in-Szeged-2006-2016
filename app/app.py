@@ -17,10 +17,6 @@ app = Flask(__name__)
 @app.route('/predict-temperature', methods=['POST'])
 def predict_temp():
     json_data = request.get_json()
-    # 'Humidity', 'Wind Speed (km/h)', 'Visibility (km)',
-    #    'Pressure (millibars)', 'Month', 'breezy', 'clear', 'cloudy',
-    #    'dangerously', 'drizzle', 'dry', 'foggy', 'humid', 'light', 'mostly',
-    #    'overcast', 'partly', 'rain', 'windy', 'snow', 'Wind_Bearing_cat']
     humidity = 0
     wind_speed = 0
     visibility = 0
@@ -48,20 +44,18 @@ def predict_temp():
     
     vector_precip = vectorizer_precip.transform(df['Precip_type'])
     vector_precip = vector_precip.toarray()
-    print(vectorizer_precip.get_feature_names_out())
     for feat_index, feat_name in enumerate(vectorizer_precip.get_feature_names_out()):
         df.loc[0, feat_name] = vector_precip[:, feat_index]
+
     vector_summary = vectorizer_summary.transform(df['Summary'])
     vector_summary = vector_summary.toarray()
-    print(vectorizer_summary.get_feature_names_out())
     for feat_index, feat_name in enumerate(vectorizer_summary.get_feature_names_out()):
         df.loc[0, feat_name] = vector_summary[:, feat_index]
-    print(df.head())
 
     features_to_be_scaled = ['Humidity','Wind Speed (km/h)','Wind Bearing (degrees)','Visibility (km)','Pressure (millibars)']
     scaled_data = scaler.transform(df[features_to_be_scaled])
     df[features_to_be_scaled] = scaled_data
-    print(df.head())
+    
     df['Wind Bearing (degrees)'] = discretizer.transform(df[['Wind Bearing (degrees)']])
     df['Wind_Bearing_cat'] = encoder.fit_transform(df[['Wind Bearing (degrees)']])
 
@@ -71,7 +65,6 @@ def predict_temp():
 
     predicted_temperature = model.predict(pca_df)
     predicted_temperature = predicted_temperature.tolist()
-    print(predicted_temperature)
 
     return {'response':predicted_temperature[0]}
 
